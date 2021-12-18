@@ -7,9 +7,9 @@
 
 Each folder corresponds to an environment.
 
-openspiel is an Environment for Stochastic Card like games.\
-gym folder contains environments for Highway, Arcarde games from PLE and other OpenAI Gym Environments.\
-whittle folder contains implementation of the two Circulant Dynamics Environments for RMAB problem.
+`openspiel` is an Environment for Stochastic Card like games.\
+`gym` folder contains environments for Highway, Arcarde games from PLE and other OpenAI Gym Environments.\
+`whittle` folder contains implementation of the two Circulant Dynamics Environments for RMAB problem.
 
 Code is documented as much as possible. 
 
