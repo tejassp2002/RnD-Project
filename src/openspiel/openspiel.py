@@ -407,7 +407,10 @@ class FGDQN(rl_agent.AbstractAgent):
     loss_per_iter = 0
 
     for i in range(len(transitions)):
+        # from the given batch B, get a transition and sample only transitions from the replay buffer
+        # with the same state and action pair as of this transition.
         new_transitions = self._replay_buffer.sample_FGDQN(transitions[i].info_state,transitions[i].action)
+        # new_transitions are the transitions with the same state and action pair.
         info_states = torch.Tensor(np.array([t.info_state for t in new_transitions])).to(device) #[B, 1741]
         actions = torch.LongTensor(np.array([t.action for t in new_transitions]))  #[B]
         rewards = torch.Tensor(np.array([(a+t.reward)/(b-a) for t in new_transitions])).to(device)
@@ -433,14 +436,20 @@ class FGDQN(rl_agent.AbstractAgent):
         action_indices = torch.stack([torch.arange(self._q_values.shape[0], dtype=torch.long), actions],dim=0)  #[2,B]
         predictions = self._q_values[list(action_indices)] #[B]
 
-        loss = self.loss_class(predictions, target)
-        loss_per_iter += loss
-
+        
+        diff = torch.mean(target-predictions)
+        # tensor.detach() creates a tensor that shares storage with tensor that does not require grad.
+        avg_part = diff.detach()
+        loss =  torch.mul(avg_part,diff)
+        
         self._optimizer.zero_grad()
         loss.backward()
         for param in self._q_network.parameters():
           param.grad.data.clamp_(-1, 1)
         self._optimizer.step()
+
+        actual_loss = self.loss_class(predictions, target) # mse loss
+        loss_per_iter += actual_loss
 
     # if self._step_counter% 50 == 0:
     #     print(f"Q Values {torch.max(self._q_network(torch.Tensor(self.fixed_state).to(device)),dim=1)[0]}")
@@ -573,7 +582,7 @@ def pt_main(game,
 
 
 if __name__ == '__main__':
-    game = "backgammon"
+    game = "catch"
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"using {device}!")
     logging_dir = f"./openspiel/{game}/logs"
