@@ -413,48 +413,66 @@ class FGDQN(rl_agent.AbstractAgent):
         # new_transitions are the transitions with the same state and action pair.
         info_states = torch.Tensor(np.array([t.info_state for t in new_transitions])).to(device) #[B, 1741]
         actions = torch.LongTensor(np.array([t.action for t in new_transitions]))  #[B]
-        rewards = torch.Tensor(np.array([(a+t.reward)/(b-a) for t in new_transitions])).to(device)
+        rewards = torch.Tensor(np.array([(min_reward+t.reward)/(max_reward-min_reward) for t in new_transitions])).to(device)
         next_info_states = torch.Tensor(np.array([t.next_info_state for t in new_transitions])).to(device)
         are_final_steps = torch.Tensor(np.array([t.is_final_step for t in new_transitions])).to(device)
         legal_actions_mask = torch.Tensor(np.array([t.legal_actions_mask for t in new_transitions]))
-
-        self._q_values = self._q_network(info_states)
-        self._next_q_values = self._q_network(next_info_states)  #[B,205]
-
-        illegal_actions = 1 - legal_actions_mask
-        illegal_logits = (illegal_actions * ILLEGAL_ACTION_LOGITS_PENALTY).to(device)
-        max_next_q = torch.max(self._next_q_values + illegal_logits, dim=1)[0]
-
-        self.fixed_q_value = self._q_network(self.fixed_state)
-        #1 torch.Size([1, 1, 205])
-
-        self.fixed_q_value = torch.max(self.fixed_q_value,dim=1)[0]  #maxu Q(i0, u)
-
-        target = (
-            rewards + (1 - are_final_steps) * (max_next_q-self.fixed_q_value))
-
-        action_indices = torch.stack([torch.arange(self._q_values.shape[0], dtype=torch.long), actions],dim=0)  #[2,B]
-        predictions = self._q_values[list(action_indices)] #[B]
-
         
-        avg_part = torch.mean(target-predictions).detach()
+        # ========Calculating the term under the overline=================
+        # average term with fixed state and action pair
+        with torch.no_grad():
+          q_values = self._q_network(info_states)
+          next_q_values = self._q_network(next_info_states)  #[B,205]
+
+          illegal_actions = 1 - legal_actions_mask
+          illegal_logits = (illegal_actions * ILLEGAL_ACTION_LOGITS_PENALTY).to(device)
+          max_next_qs = torch.max(next_q_values + illegal_logits, dim=1)[0]
+
+          fixed_q_value = self._q_network(self.fixed_state)
+          fixed_q_value = torch.max(fixed_q_value,dim=1)[0]  #maxu Q(i0, u)
+
+          targets = (
+              rewards + (1 - are_final_steps) * (max_next_qs-fixed_q_value))
+
+          action_indices = torch.stack([torch.arange(q_values.shape[0], dtype=torch.long), actions],dim=0)  #[2,B]
+          predictions = q_values[list(action_indices)] #[B]
+          avg_part = torch.mean(targets-predictions)
+          assert avg_part.requires_grad == False, "avg_part requires grad"
         # tensor.detach() creates a tensor that shares storage with tensor that does not require grad.
+        # ================================================================
         
-        loss_per_batch = 0
-        for i in range(len(predictions)):
-          loss = target[i]-predictions[i]
-          loss = torch.mul(avg_part,loss)
-          self._optimizer.zero_grad()
-          loss.backward()
-          for param in self._q_network.parameters():
-            param.grad.data.clamp_(-1, 1)
-          self._optimizer.step()
+        # ========Calculating the gradient term =================
+        state = torch.Tensor(np.array([transitions[i].info_state])).to(device)
+        action = torch.LongTensor(np.array([transitions[i].action]))
+        next_state = torch.Tensor(np.array([transitions[i].next_info_state])).to(device)
+        reward =  torch.Tensor(np.array([(min_reward+transitions[i].reward)/(max_reward-min_reward)])).to(device)
+        is_final_step = torch.Tensor(np.array([transitions[i].is_final_step])).to(device)
+        legal_action_mask = torch.Tensor(np.array([transitions[i].legal_actions_mask]))
 
-          actual_loss = self.loss_class(predictions[i], target[i]) # mse loss
-          loss_per_batch += actual_loss
-          
-        loss_per_iter += loss_per_batch/len(predictions)
+        q_value = self._q_network(state)
+        next_q_value = self._q_network(next_state) 
+        illegal_action = 1 - legal_action_mask
+        illegal_logit = (illegal_action * ILLEGAL_ACTION_LOGITS_PENALTY).to(device)
+        max_next_q = torch.max(next_q_value + illegal_logit, dim=1)[0]
+        target = (
+            reward + (1 - is_final_step) * (max_next_q-fixed_q_value))
 
+        action_index = torch.stack([torch.arange(q_value.shape[0], dtype=torch.long), action],dim=0)  #[2,B]
+        prediction = q_value[list(action_index)] #[B]
+
+        loss = torch.mul(avg_part,target-prediction)
+        self._optimizer.zero_grad()
+        loss.backward()
+        for param in self._q_network.parameters():
+          param.grad.data.clamp_(-1, 1)
+        self._optimizer.step()
+
+        actual_loss = self.loss_class(prediction, target) # mse loss
+        loss_per_iter += actual_loss
+        # ================================================================
+        
+        
+    # print("losssssssssssss",loss_per_iter/len(transitions))
     return loss_per_iter/len(transitions)
 
   @property
@@ -600,8 +618,8 @@ if __name__ == '__main__':
 
     #parameters for reward scaling
     tp = pyspiel.load_game(game)
-    a = tp.min_utility()
-    b = tp.max_utility()
+    min_reward = tp.min_utility()
+    max_reward = tp.max_utility()
 
     if not os.path.isdir(checkpoint_dir):
       os.makedirs(checkpoint_dir)
