@@ -437,22 +437,23 @@ class FGDQN(rl_agent.AbstractAgent):
         predictions = self._q_values[list(action_indices)] #[B]
 
         
-        diff = torch.mean(target-predictions)
+        avg_part = torch.mean(target-predictions).detach()
         # tensor.detach() creates a tensor that shares storage with tensor that does not require grad.
-        avg_part = diff.detach()
-        loss =  torch.mul(avg_part,diff)
         
-        self._optimizer.zero_grad()
-        loss.backward()
-        for param in self._q_network.parameters():
-          param.grad.data.clamp_(-1, 1)
-        self._optimizer.step()
+        loss_per_batch = 0
+        for i in range(len(predictions)):
+          loss = target[i]-predictions[i]
+          loss = torch.mul(avg_part,loss)
+          self._optimizer.zero_grad()
+          loss.backward()
+          for param in self._q_network.parameters():
+            param.grad.data.clamp_(-1, 1)
+          self._optimizer.step()
 
-        actual_loss = self.loss_class(predictions, target) # mse loss
-        loss_per_iter += actual_loss
-
-    # if self._step_counter% 50 == 0:
-    #     print(f"Q Values {torch.max(self._q_network(torch.Tensor(self.fixed_state).to(device)),dim=1)[0]}")
+          actual_loss = self.loss_class(predictions[i], target[i]) # mse loss
+          loss_per_batch += actual_loss
+          
+        loss_per_iter += loss_per_batch/len(predictions)
 
     return loss_per_iter/len(transitions)
 
