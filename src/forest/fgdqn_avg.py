@@ -1,13 +1,3 @@
-#######################################################################################################################
-#                                                                                                                     #
-#    Kishor Patil                                                                                                     #
-#    Tejas Pagare                                                                                                     #
-#    @ Sept, 2021; Reinforcement Learning                                                                             #
-#    Web page crawling; Whittle indices;                                                                              #
-#    Deep learning Framework                                                                                          #
-#    DQN Main python File                                                                                             #
-#######################################################################################################################
-
 import math
 # import random
 import numpy as np

@@ -1,13 +1,3 @@
-#######################################################################################################################
-#                                                                                                                     #
-#    Kishor Patil                                                                                                     #
-#    @ Oct, 2020; Reinforcement Learning                                                                              #
-#    Web page crawling; Whittle indices;                                                                              #
-#    Deep learning Framework                                                                                          #
-#    QNetwork.py                                                                                                      #
-#######################################################################################################################
-
-
 import torch
 import torch.nn as nn
 #import numpy as np

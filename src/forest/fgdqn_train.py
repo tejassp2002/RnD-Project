@@ -1,13 +1,3 @@
-#######################################################################################################################
-#                                                                                                                     #
-#    Kishor Patil                                                                                                     #
-#    @ Oct, 2020; Reinforcement Learning                                                                              #
-#    Web page crawling; Whittle indices;                                                                              #
-#    Deep learning Framework                                                                                          #
-#    Train the DQN agent                                                                                              #
-#######################################################################################################################
-
-
 import matplotlib.pyplot as plt
 import numpy as np
 #from DQN_main_Inbuilt import DQN_agent

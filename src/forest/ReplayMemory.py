@@ -1,12 +1,3 @@
-#######################################################################################################################
-#                                                                                                                     #
-#    Kishor Patil                                                                                                     #
-#    @ Oct, 2020; Reinforcement Learning                                                                              #
-#    Web page crawling; Whittle indices;                                                                              #
-#    Deep learning Framework                                                                                          #
-#    Replay Memory #only 1 sample at the moment from replay memory                                                    #
-#######################################################################################################################
-
 from collections import namedtuple
 from collections import deque
 import random
