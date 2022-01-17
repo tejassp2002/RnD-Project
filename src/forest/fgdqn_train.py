@@ -110,7 +110,7 @@ if __name__ == '__main__':
     final_policy = []
     dqn_train(args.iter)
 
-    with open(f'Data/{args.expname}.csv', "a", newline='') as f:
+    with open(f'Data/FGDQN_{args.expname}.csv', "a", newline='') as f:
         writer = csv.writer(f)
         writer.writerow(["Loss","State","Policy","Hamming_distance"])
         writer.writerows(zip(losses, state_record,policy_iters,Hamming_distance))

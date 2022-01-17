@@ -109,11 +109,6 @@ class DQN_agent:
         return (current_state, current_action, immediate_reward, next_state)
 
     def optimise_model(self,trans):
-        # ========Calculating the term under the overline=================
-        # average term with fixed state and action pair
-        # Transpose the batch. This converts batch-array of Transitions to Transition of batch-arrays.
-        # print(Samples)
-        # ========Calculating the gradient term =================
         state = torch.tensor([trans.state]).unsqueeze(1).to(device) #[1,1]
         action = torch.tensor([trans.action]).unsqueeze(1).to(device) #[1,1]
         reward = torch.tensor([trans.reward]).to(device) #[1]
@@ -130,7 +125,6 @@ class DQN_agent:
             target = reward+NSA_value - fixed_Q_value #[1]
         assert target.requires_grad == False, "target requires grad"
         SA_value = self.qnetwork_local(state, action) #[1]
-        # ================================================================
         loss = F.mse_loss(SA_value,target) #[1]
         self.optimizer.zero_grad()
         loss.backward()
