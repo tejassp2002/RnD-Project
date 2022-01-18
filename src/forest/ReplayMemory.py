@@ -24,8 +24,11 @@ class ReplayMemory(object):
     def sample_batch_FG(self,trans):
         data = [self.memory[i] for i in range(len(self.memory)) if 
             (self.memory[i].state,self.memory[i].action)==(trans.state,trans.action)]
-        data.remove(trans)
-        return data 
+        data.remove(trans) # removing the current transition from the batch
+        if len(data)<self.batch_size:
+            return data
+        else:
+            return random.sample(data,self.batch_size)
 
     def __len__(self):
         return len(self.memory)
