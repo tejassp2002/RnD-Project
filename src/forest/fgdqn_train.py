@@ -43,7 +43,7 @@ def dqn_train(iterations = 300):
         for k in range(batch_size):
             mod_samples = memory.sample_batch_FG(batch_sample[k])
             # mod_samples are transitions with fixed state-action pair
-            # excluding the current transition 
+            # excluding the current transition i.e. batch_sample[k]
             # takes a single gradient step
             loss_per_batch += agent.optimise_model(batch_sample[k],mod_samples)
             gradient_steps += 1

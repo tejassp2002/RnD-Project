@@ -115,11 +115,11 @@ if __name__ == '__main__':
     actions = np.zeros(I) 
     actions[:K] = 1   
 
-    whittle_every = 5          # update whittle network every iterations
+    whittle_every = 20          # update whittle network every iterations
     
     #time window to calculate running average of loss    
-    running_time_q = 40         
-    running_time_whittle = 40
+    running_time_q = 100         
+    running_time_whittle = 20
     Q_losses = []
     W_losses = []
 

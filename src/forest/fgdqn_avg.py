@@ -155,7 +155,7 @@ class FGDQN_agent:
             torch.tensor([self.a0]).unsqueeze(1).to(device)) #[1]
         target = reward+NSA_value - fixed_Q_value #[1]
         assert target.requires_grad == True, "target doesn't requires grad"
-        avg_part = avg_part+(target-SA_value).detach() #[B+1]
+        avg_part = torch.cat([avg_part,(target-SA_value).detach()]) #[B+1]
         # tensor.detach() creates a tensor that shares storage with tensor that does not require grad.
         avg_part = torch.mean(avg_part) #[]
         assert avg_part.requires_grad == False, "avg_part requires grad"

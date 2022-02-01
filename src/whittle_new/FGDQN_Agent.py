@@ -108,14 +108,13 @@ class FGDQN_agent:
             action.squeeze(1).to(torch.int64)*reward + NSA_value - fixed_Q_value #[1]
         assert target.requires_grad == True, "target doesn't requires grad"
         # ================================================================
-        avg_part = avg_part+(target-SA_value).detach() #[B+1]
+        avg_part = torch.cat([avg_part,(target-SA_value).detach()]) #[B+1]
         # tensor.detach() creates a tensor that shares storage with tensor that does not require grad.
         avg_part = torch.mean(avg_part) #[]
         assert avg_part.requires_grad == False, "avg_part requires grad"
         # ================================================================
         loss = torch.mul(avg_part,target-SA_value) #[1]
         self.optimizer_Q.zero_grad()
-        self.optimizer_whittle.zero_grad()
         loss.backward()
         for param in self.qnetwork.parameters():
             param.grad.data.clamp_(-1, 1)
@@ -171,14 +170,13 @@ class FGDQN_agent:
         target = Q_value-reward+fixed_Q_value-NSA_value #[1]
         assert target.requires_grad == True, "target doesn't requires grad"
         # ================================================================
-        avg_part = avg_part+(target-index.squeeze(1)).detach() #[B+1]
+        avg_part = torch.cat([avg_part,(target-index.squeeze(1)).detach()]) #[B+1]
         # tensor.detach() creates a tensor that shares storage with tensor that does not require grad.
         avg_part = torch.mean(avg_part) #[]
         assert avg_part.requires_grad == False, "avg_part requires grad"
         # ================================================================
         loss = torch.mul(avg_part,target-index.squeeze(1)) #[1]
         self.optimizer_whittle.zero_grad()
-        self.optimizer_Q.zero_grad()
         loss.backward()
         for param in self.qnetwork.parameters():
             param.grad.data.clamp_(-1, 1)
