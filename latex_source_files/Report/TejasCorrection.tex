@@ -1,0 +1,25 @@
+\documentclass[10pt]{article}
+\begin{document}
+Consider parametrized families $\lambda(k,\sigma)$ and $Q(i , u; \theta, \sigma)$ where we render explicit the implicit dependence of $Q$ on $\lambda$ and therefore $\sigma$. Consider
+\begin{eqnarray*}
+\lefteqn{\theta_{n+1} \ = \  \theta_n \ - \  a(n)\Big(\nabla_\theta Q(X_{n+1},v_n;\theta_n,\sigma_n) \ - \ \nabla_\theta f(Q(\theta,\sigma_n))\Big|_{\theta = \theta_n} }\\
+&& - \ \nabla_\theta Q(X_n,U_n;\theta_n,\sigma_n) \ \Big)\times  \\
+&&\overline{\Big((1-U_n)(r(X_n,0) + \lambda(X_n,\sigma_n)) + U_nr_n(X_n,1) + \max_{v\in\{0,1\}}Q(X_{n+1},v;\theta_n,\sigma_n)}\\
+&&\overline{ - \ f(Q(\theta_n,\sigma_n)) - Q(X_n,U_n;\theta_n,\sigma_n)\Big)} + a(n) \xi_{n+1},\\
+\lefteqn{\sigma_{n+1} = \sigma_n - b(n)\overline{\Big(Q(X_n, 1;\theta_n,\sigma_n) - r(X_n,0)  + \ f(Q(X_n,0;\theta_n,\sigma_n))}}\\
+&& \overline{- \max_{v\in\{0,1\}}Q(X_{n+1},v;\theta_n,\sigma_n) - \lambda(X_n,\sigma_n)\Big)} \times \\
+&& \Big(\nabla_\sigma Q(X_{n+1},v_n;\theta_n,\sigma_n) \ - \ \nabla_\sigma f(Q(\theta_n,\sigma))\Big|_{\sigma = \sigma_n} \\
+&& - \ \nabla_\sigma Q(X_n,U_n;\theta_n,\sigma_n) - \nabla_\sigma\lambda(X_n,\sigma_n)\Big)
+\end{eqnarray*}
+The $\theta_n$ iteration is the SGD for the mean square error
+\begin{eqnarray*}
+\lefteqn{\mathcal{E}_1 := E\Big[\Big\|(1-U_n)(r(X_n,0) + \lambda(X_n,\sigma_n)) + U_nr_n(X_n,1) }\\
+&&+ \ \max_{v\in\{0,1\}}Q(X_{n+1},v;\theta_n,\sigma_n)
+ - \ f(Q(\theta_n,\sigma_n)) - Q(X_n,U_n;\theta_n,\sigma_n)\Big\|^2\Big].
+\end{eqnarray*}
+The $\sigma_n$ iteration is the SGD to minimize the mean square error
+\begin{eqnarray*}
+\lefteqn{\mathcal{E}_2 := E\Big[\Big\|Q(X_n, 1;\theta_n,\sigma_n) - r(X_n,0)  + \ f(Q(X_n,0;\theta_n,\sigma_n))}\\
+&& - \max_{v\in\{0,1\}}Q(X_{n+1},v;\theta_n,\sigma_n) - \lambda(X_n,\sigma_n)\Big\|^2\Big].
+\end{eqnarray*}
+\end{document}
